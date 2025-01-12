@@ -39,7 +39,6 @@ def streamlit_app():
 
     # Display existing servers
     server_df = server_manager.get_servers()
-    st.subheader("Server Performance Monitoring")
     if not server_df.empty:
         for _, server in server_df.iterrows():
             hostname = server["hostname"]
@@ -48,7 +47,7 @@ def streamlit_app():
             # Display server title with a remove button
             col1, col2 = st.columns([4, 1])  # Create two columns
             with col1:
-                st.markdown(f"### Host: {hostname} (Port: {port})")
+                st.markdown(f"### Host: {hostname} (Port: {port}, Interval: {interval})")
             with col2:
                 remove_button = st.button("Remove", key=f"remove_{hostname}_{port}")
 
