@@ -1,6 +1,7 @@
 import iperf3
 import pandas as pd
-import socket
+
+
 def create_iperf_table(data):
     """
     Create a table from iPerf3 JSON data, focusing on interval statistics.
@@ -31,37 +32,23 @@ def create_iperf_table(data):
     return df
 
 
-def run_iperf_test(server_hostname='avi.kour.me', port=5201, duration=10):
+def run_iperf_test(hostname, port, duration):
+    """Run an iPerf3 test and return results."""
     client = iperf3.Client()
-    client.server_hostname = server_hostname
+    client.server_hostname = hostname
     client.port = port
     client.duration = duration
-
     result = client.run()
-
-    if result.error:
-        return f"Error: {result.error}"
-    else:
-        print(f"Test completed: {result.sent_Mbps} Mbps sent, {result.received_Mbps} Mbps received")
-        return result
-
-
-def run_iperf_server(port):
-    """Run iPerf3 server."""
-    server = iperf3.Server()
-    server.port = port
-    result = server.run()
-    return result
-
-def get_local_ip():
-    """Get the local IP address of the machine."""
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        s.connect(('8.8.8.8', 80))
-        local_ip = s.getsockname()[0]
-    finally:
-        s.close()
-    return local_ip
+        if result.error:
+            return None
+        return {
+            "sent_Mbps": result.sent_Mbps,
+            "received_Mbps": result.received_Mbps,
+        }
+    except Exception as e:
+        return None
+
 
 if __name__ == '__main__':
-    run_iperf_test()
+    print(run_iperf_test('avi.kour.me', '5201',duration=10))

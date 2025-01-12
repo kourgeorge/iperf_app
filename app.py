@@ -1,0 +1,64 @@
+import streamlit as st
+
+from server import server_manager, server_tester
+from server_manager import ServerManager
+from server_tester import ServerTester
+from utils import load_results
+
+
+def streamlit_app():
+    """Streamlit UI for iPerf3 Server Performance Monitoring."""
+    st.title("iPerf3 Server Performance Monitor")
+
+
+    # Sidebar for adding new servers
+    st.sidebar.header("Add New Server")
+    hostname = st.sidebar.text_input("Hostname", "")
+    port = st.sidebar.number_input("Port", min_value=1024, max_value=65535, value=5201)
+    duration = st.sidebar.number_input("Duration (seconds)", min_value=1, max_value=300, value=10)
+    interval = st.sidebar.number_input("Interval (minutes)", min_value=1, max_value=60, value=5)
+    add_server_button = st.sidebar.button("Add Server")
+
+    # Add server functionality
+    if add_server_button:
+        if hostname and port and duration and interval:
+            if server_manager.add_server(hostname, port, duration, interval):
+                st.sidebar.success(f"Server {hostname}:{port} added successfully!")
+                server_tester.start_testing({
+                    "hostname": hostname,
+                    "port": port,
+                    "duration": duration,
+                    "interval": interval,
+                    "results_file": f"{hostname.replace('.', '_')}.csv"
+                })
+            else:
+                st.sidebar.error(f"Failed to add server {hostname}:{port}.")
+        else:
+            st.sidebar.error("Please fill all the fields correctly.")
+
+    # Display existing servers
+    server_df = server_manager.get_servers()
+    st.subheader("Server Performance Monitoring")
+    if not server_df.empty:
+        for _, server in server_df.iterrows():
+            hostname = server["hostname"]
+            results_file = server["results_file"]
+
+            st.markdown(f"### Host: {hostname} (Port: {server['port']})")
+            result_data = load_results(results_file)
+
+            if not result_data.empty:
+                st.line_chart(
+                    result_data.set_index("timestamp")[["sent_Mbps", "received_Mbps"]]
+                )
+            else:
+                st.warning(f"No data available for {hostname}.")
+    else:
+        st.warning("No servers added yet. Add servers from the sidebar.")
+
+    st.rerun()
+
+
+if __name__ == "__main__":
+    # Launch the Streamlit app
+    streamlit_app()
