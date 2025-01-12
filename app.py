@@ -1,8 +1,7 @@
 import streamlit as st
 
+import utils
 from server import server_manager, server_tester
-from server_manager import ServerManager
-from server_tester import ServerTester
 from utils import load_results
 
 
@@ -10,9 +9,8 @@ def streamlit_app():
     """Streamlit UI for iPerf3 Server Performance Monitoring."""
     st.title("iPerf3 Server Performance Monitor")
 
-
     # Sidebar for adding new servers
-    st.sidebar.header("Add New Server")
+    st.sidebar.header("Configure Server")
     hostname = st.sidebar.text_input("Hostname", "")
     port = st.sidebar.number_input("Port", min_value=1024, max_value=65535, value=5201)
     duration = st.sidebar.number_input("Duration (seconds)", min_value=1, max_value=300, value=10)
@@ -22,17 +20,20 @@ def streamlit_app():
     # Add server functionality
     if add_server_button:
         if hostname and port and duration and interval:
-            if server_manager.add_server(hostname, port, duration, interval):
-                st.sidebar.success(f"Server {hostname}:{port} added successfully!")
-                server_tester.start_testing({
-                    "hostname": hostname,
-                    "port": port,
-                    "duration": duration,
-                    "interval": interval,
-                    "results_file": f"{hostname.replace('.', '_')}.csv"
-                })
+            if not server_tester.test_server(hostname, port):
+                st.sidebar.error(f"Failed to add server {hostname}:{port} - make sure the server is running iperf3")
             else:
-                st.sidebar.error(f"Failed to add server {hostname}:{port}.")
+                if server_manager.add_server(hostname, port, duration, interval):
+                    st.sidebar.success(f"Server {hostname}:{port} added successfully!")
+                    server_tester.start_testing({
+                        "hostname": hostname,
+                        "port": port,
+                        "duration": duration,
+                        "interval": interval,
+                        "results_file": f"{hostname.replace('.', '_')}.csv"
+                    })
+                else:
+                    st.sidebar.error(f"Failed to add server {hostname}:{port}.")
         else:
             st.sidebar.error("Please fill all the fields correctly.")
 
@@ -44,7 +45,20 @@ def streamlit_app():
             hostname = server["hostname"]
             results_file = server["results_file"]
 
-            st.markdown(f"### Host: {hostname} (Port: {server['port']})")
+            # Display server title with a remove button
+            col1, col2 = st.columns([4, 1])  # Create two columns
+            with col1:
+                st.markdown(f"### Host: {hostname} (Port: {port})")
+            with col2:
+                remove_button = st.button("Remove", key=f"remove_{hostname}_{port}")
+
+            # Handle the remove button click
+            if remove_button:
+                server_manager.remove_server(hostname, port)
+                server_tester.stop_testing(hostname, port)
+                st.success(f"Server {hostname}:{port} removed successfully!")
+                st.rerun()  # Refresh the page after removal
+
             result_data = load_results(results_file)
 
             if not result_data.empty:

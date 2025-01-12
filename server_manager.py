@@ -20,14 +20,21 @@ class ServerManager:
         server_df.to_csv(self.file_path, index=False)
 
     def add_server(self, hostname, port, duration, interval):
-        """Add a new server configuration."""
+        """Add or update a server configuration."""
         server_df = self.get_servers()
 
         # Check if the server already exists
-        if not ((server_df["hostname"] == hostname) &
-                (server_df["port"] == port) &
-                (server_df["duration"] == duration) &
-                (server_df["interval"] == interval)).any():
+        existing_server_index = server_df[
+            (server_df["hostname"] == hostname) & (server_df["port"] == port)
+            ].index
+
+        if not existing_server_index.empty:
+            # Update the existing server's configuration
+            server_df.loc[existing_server_index, "duration"] = duration
+            server_df.loc[existing_server_index, "interval"] = interval
+            server_df.loc[existing_server_index, "results_file"] = f"{hostname.replace('.', '_')+port}.csv"
+        else:
+            # Add a new server configuration
             new_entry = pd.DataFrame([{
                 "hostname": hostname,
                 "port": port,
@@ -35,18 +42,31 @@ class ServerManager:
                 "interval": interval,
                 "results_file": f"{hostname.replace('.', '_')}.csv"
             }])
-
             server_df = pd.concat([server_df, new_entry], ignore_index=True)
-            self.save_servers(server_df)
-            print(f"Added server: {hostname}:{port} with duration {duration}s and interval {interval}m.")
-            return True
-        else:
-            print(f"Server configuration for {hostname}:{port} already exists.")
-            return False
+
+        # Save the updated DataFrame back to the file
+        self.save_servers(server_df)
+        return True
 
     def remove_server(self, hostname, port):
-        """Remove a server configuration."""
+        """Remove a server configuration and delete its results file."""
         server_df = self.get_servers()
-        server_df = server_df[~((server_df["hostname"] == hostname) & (server_df["port"] == port))]
-        self.save_servers(server_df)
-        print(f"Removed server: {hostname}:{port}.")
+
+        # Find the server to remove
+        server_to_remove = server_df[
+            (server_df["hostname"] == hostname) & (server_df["port"] == port)
+            ]
+
+        if not server_to_remove.empty:
+            # Get the results file path
+            results_file = server_to_remove.iloc[0]["results_file"]
+
+            # Remove the server from the DataFrame
+            server_df = server_df[
+                ~((server_df["hostname"] == hostname) & (server_df["port"] == port))
+            ]
+            self.save_servers(server_df)
+
+            # Delete the results file if it exists
+            if os.path.exists(results_file):
+                os.remove(results_file)
