@@ -56,7 +56,7 @@ st.header("Performance Results")
 if "monitoring" in st.session_state and st.session_state["monitoring"]:
     print (st.session_state)
     while True:
-        if 'results_file' in st.session_state and pd.io.common.file_exists(results_file):
+        if 'results_file' in st.session_state and pd.io.common.file_exists(st.session_state['results_file']):
             results_file = st.session_state['results_file']
             df = pd.read_csv(results_file)
             df["timestamp"] = pd.to_datetime(df["timestamp"])
