@@ -1,4 +1,4 @@
 iperf3
 pandas
 streamlit
-st_autorefresh
+streamlit_autorefresh
