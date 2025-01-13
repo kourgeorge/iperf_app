@@ -1,3 +1,5 @@
+from datetime import time
+
 import streamlit as st
 
 import utils
@@ -69,7 +71,7 @@ def streamlit_app():
     else:
         st.warning("No servers added yet. Add servers from the sidebar.")
 
-    st.rerun()
+    # st.rerun()
 
 
 if __name__ == "__main__":
