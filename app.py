@@ -28,8 +28,9 @@ def streamlit_app():
     # Add server functionality
     if add_server_button:
         if hostname and port and duration and interval:
-            if not server_tester.test_server(hostname, port):
-                st.sidebar.error(f"Failed to add server {hostname}:{port} - make sure the server is running iperf3")
+            success, error = server_tester.test_server(hostname, port)
+            if not success:
+                st.sidebar.error(f"Failed to add server {hostname}:{port}. Error: {error}.")
             else:
                 if server_manager.add_server(hostname, port, duration, interval):
                     st.sidebar.success(f"Server {hostname}:{port} added successfully!")

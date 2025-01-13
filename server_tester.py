@@ -112,9 +112,9 @@ class ServerTester:
         # Run a quick iPerf3 test with duration 1 second
         ping_result = utils.run_iperf_test(hostname, port, 1)
 
-        if 'error' in ping_result and not "server is busy" in ping_result["error"].lower():
+        if 'error' in ping_result:
             # Server is not reachable or not running iPerf3
-            return False
+            return False, ping_result["error"]
 
         # Server is reachable and running iPerf3
-        return True
+        return True, None
