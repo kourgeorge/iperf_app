@@ -1,6 +1,7 @@
 from datetime import time
 
 import streamlit as st
+from streamlit_autorefresh import st_autorefresh
 
 import utils
 from server import server_manager, server_tester
@@ -10,6 +11,11 @@ from utils import load_results
 def streamlit_app():
     """Streamlit UI for iPerf3 Server Performance Monitoring."""
     st.title("iPerf3 Server Performance Monitor")
+
+    # Set the refresh interval (in milliseconds)
+    refresh_interval = 10000  # 5 seconds
+    count = st_autorefresh(interval=refresh_interval, limit=None, key="auto_refresh")
+
 
     # Sidebar for adding new servers
     st.sidebar.header("Configure Server")
