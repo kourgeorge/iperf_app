@@ -27,13 +27,7 @@ def streamlit_app():
             else:
                 if server_manager.add_server(hostname, port, duration, interval):
                     st.sidebar.success(f"Server {hostname}:{port} added successfully!")
-                    server_tester.start_testing({
-                        "hostname": hostname,
-                        "port": port,
-                        "duration": duration,
-                        "interval": interval,
-                        "results_file": f"{hostname.replace('.', '_')}.csv"
-                    })
+
                 else:
                     st.sidebar.error(f"Failed to add server {hostname}:{port}.")
         else:
@@ -71,7 +65,13 @@ def streamlit_app():
     else:
         st.warning("No servers added yet. Add servers from the sidebar.")
 
-    # st.rerun()
+    _, col2 = st.columns([5, 1])  # Create two columns
+    with col2:
+        refresh_button = st.button("Refresh", key="refresh", icon='🔄')
+
+    # Handle the refresh button click
+    if refresh_button:
+        st.rerun()
 
 
 if __name__ == "__main__":

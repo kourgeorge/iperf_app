@@ -7,13 +7,8 @@ def get_server_manager():
     return ServerManager("servers.csv")
 
 
-def get_server_tester():
-    """Returns the singleton instance of ServerTester."""
-    return ServerTester()
-
-
 server_manager = get_server_manager()
-server_tester = get_server_tester()
+server_tester = ServerTester()
 
 # Start testing all servers in the manager
 server_tester.run(server_manager)

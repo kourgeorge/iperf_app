@@ -1,6 +1,10 @@
 import os
 import pandas as pd
 
+from server_tester import ServerTester
+
+server_tester = ServerTester()
+
 
 class ServerManager:
     """Manages server configurations (adding, removing, saving, and loading)."""
@@ -30,9 +34,11 @@ class ServerManager:
 
         if not existing_server_index.empty:
             # Update the existing server's configuration
+            server_tester.stop_testing(hostname, port)
             server_df.loc[existing_server_index, "duration"] = duration
             server_df.loc[existing_server_index, "interval"] = interval
-            server_df.loc[existing_server_index, "results_file"] = f"{hostname.replace('.', '_')+port}.csv"
+            server_df.loc[existing_server_index, "results_file"] = f"{hostname.replace('.', '_')}_{port}.csv"
+
         else:
             # Add a new server configuration
             new_entry = pd.DataFrame([{
@@ -40,9 +46,17 @@ class ServerManager:
                 "port": port,
                 "duration": duration,
                 "interval": interval,
-                "results_file": f"{hostname.replace('.', '_')}.csv"
+                "results_file": f"{hostname.replace('.', '_')}_{port}.csv"
             }])
             server_df = pd.concat([server_df, new_entry], ignore_index=True)
+
+        server_tester.start_testing({
+            "hostname": hostname,
+            "port": port,
+            "duration": duration,
+            "interval": interval,
+            "results_file": f"{hostname.replace('.', '_')}_{port}.csv"
+        })
 
         # Save the updated DataFrame back to the file
         self.save_servers(server_df)
