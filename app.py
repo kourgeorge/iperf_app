@@ -1,10 +1,8 @@
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
-
 import utils
 from server import server_manager, server_tester
 from utils import load_results
-
 from streamlit_javascript import st_javascript
 
 
@@ -20,15 +18,14 @@ def streamlit_app():
     st.title("iPerf3 Server Performance Monitor")
 
     # Set the refresh interval (in milliseconds)
-    refresh_interval = 10000  # 5 seconds
+    refresh_interval = 5000  # 5 seconds
     count = st_autorefresh(interval=refresh_interval, limit=None, key="auto_refresh")
-
 
     # Sidebar for adding new servers
     st.sidebar.header("Configure Server")
     hostname = st.sidebar.text_input("Hostname", "")
     port = st.sidebar.number_input("Port", min_value=1024, max_value=65535, value=5201)
-    duration = st.sidebar.number_input("Duration (seconds)", min_value=1, max_value=300, value=10)
+    duration = st.sidebar.number_input("Duration (seconds)", min_value=1, max_value=50, value=10)
     interval = st.sidebar.number_input("Interval (minutes)", min_value=1, max_value=60, value=5)
     add_server_button = st.sidebar.button("Add Server")
 
@@ -57,7 +54,7 @@ def streamlit_app():
             # Display server title with a remove button
             col1, col2 = st.columns([4, 1])  # Create two columns
             with col1:
-                st.markdown(f"### Host: {hostname} (Port: {port}, Interval: {interval})")
+                st.markdown(f"### {hostname} (Port: {port}, Interval: {interval})")
             with col2:
                 remove_button = st.button("Remove", key=f"remove_{hostname}_{port}")
 

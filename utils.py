@@ -39,8 +39,13 @@ def convert_unix_to_local(unix_time, client_timezone='UTC'):
 
     :param unix_time: Unix timestamp.
     :param client_timezone: The client's timezone (e.g., 'America/New_York').
-    :return: Local time as a datetime object.
+    :return: Local time as a formatted string.
     """
-    local_tz = pytz.timezone(client_timezone)
-    local_time = datetime.datetime.fromtimestamp(unix_time, tz=local_tz)
-    return local_time.strftime('%d/%m/%y %H:%M')
+    try:
+        if not isinstance(client_timezone, str):
+            raise ValueError(f"Invalid timezone format: {client_timezone}. It must be a string.")
+        local_tz = pytz.timezone(client_timezone)
+        local_time = datetime.datetime.fromtimestamp(unix_time, tz=local_tz)
+        return local_time.strftime('%d/%m/%y %H:%M')
+    except Exception as e:
+        return f"Error: {e}"
