@@ -38,13 +38,13 @@ class ServerTester:
             result = run_iperf_test(server_hostname, port, duration)
 
             # Check if the server is busy
-            if result and "error" in result and "server is busy" in result["error"].lower():
+            if result and "error" in result:
                 # Retry after the same interval
                 time.sleep(server_config["interval"] * 60)
                 continue
 
             # If the result is valid, process it
-            if result:
+            if "sent_Mbps" in result:
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 result_data = {
                     "timestamp": timestamp,
