@@ -2,3 +2,6 @@ iperf3
 pandas
 streamlit
 streamlit_autorefresh
+streamlit-javascript
+pytz
+watchdog

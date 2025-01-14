@@ -2,7 +2,6 @@ import os
 import time
 import threading
 import pandas as pd
-from datetime import datetime
 
 import utils
 from utils import run_iperf_test
@@ -45,9 +44,8 @@ class ServerTester:
 
             # If the result is valid, process it
             if "sent_Mbps" in result:
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 result_data = {
-                    "timestamp": timestamp,
+                    "timestamp": result['timestamp'],
                     "sent_Mbps": round(result["sent_Mbps"], 2),
                     "received_Mbps": round(result["received_Mbps"], 2),
                 }

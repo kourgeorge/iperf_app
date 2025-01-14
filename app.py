@@ -1,5 +1,3 @@
-from datetime import time
-
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
@@ -7,9 +5,18 @@ import utils
 from server import server_manager, server_tester
 from utils import load_results
 
+from streamlit_javascript import st_javascript
+
 
 def streamlit_app():
     """Streamlit UI for iPerf3 Server Performance Monitoring."""
+    # Fetch client timezone
+    client_timezone = st_javascript("""await (async () => {
+                const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                console.log(userTimezone)
+                return userTimezone
+    })().then(returnValue => returnValue)""")
+
     st.title("iPerf3 Server Performance Monitor")
 
     # Set the refresh interval (in milliseconds)
@@ -64,8 +71,14 @@ def streamlit_app():
             result_data = load_results(results_file)
 
             if not result_data.empty:
+                # Convert Unix timestamps to local time
+                result_data["time"] = result_data["timestamp"].apply(
+                    lambda x: utils.convert_unix_to_local(x, client_timezone)
+                )
+
+            if not result_data.empty:
                 st.line_chart(
-                    result_data.set_index("timestamp")[["sent_Mbps", "received_Mbps"]]
+                    result_data.set_index("time")[["sent_Mbps", "received_Mbps"]]
                 )
             else:
                 st.warning(f"No data available for {hostname}.")
