@@ -3,6 +3,7 @@ import pandas as pd
 from iperf3 import iperf3
 import pytz
 import datetime
+import socket
 
 
 def run_iperf_test(hostname, port, duration):
@@ -13,9 +14,12 @@ def run_iperf_test(hostname, port, duration):
     client.duration = duration
     try:
         result = client.run()
-        print(result)
+        del client
         if result.error:
-            return {"error": result.error}
+            return {
+                "timestamp": datetime.datetime.now().timestamp(),
+                "error": result.error
+            }
         return {
             "timestamp": result.timesecs,
             "sent_Mbps": result.sent_Mbps,
@@ -49,3 +53,23 @@ def convert_unix_to_local(unix_time, client_timezone='UTC'):
         return local_time.strftime('%d/%m/%y %H:%M')
     except Exception as e:
         return f"Error: {e}"
+
+
+async def test_server_port(hostname, port, timeout=5):
+    """
+    Test if a server responds on a specific port.
+
+    :param hostname: The server's hostname or IP address.
+    :param port: The port number to test.
+    :param timeout: Timeout for the connection attempt in seconds.
+    :return: True if the server responds, False otherwise.
+    """
+    try:
+        # Create a socket and attempt to connect to the server
+        with socket.create_connection((hostname, port), timeout):
+            return True
+    except (socket.timeout, ConnectionRefusedError):
+        # Server did not respond or connection was refused
+        return False
+    except Exception as e:
+        return False

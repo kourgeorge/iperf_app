@@ -37,10 +37,10 @@ class ServerTester:
             result = run_iperf_test(server_hostname, port, duration)
 
             # Check if the server is busy
-            if result and "error" in result:
-                # Retry after the same interval
-                time.sleep(server_config["interval"] * 60)
-                continue
+            # if result and "error" in result:
+            #     # Retry after the same interval
+            #     time.sleep(server_config["interval"] * 60)
+            #     continue
 
             # If the result is valid, process it
             if "sent_Mbps" in result:
@@ -49,13 +49,19 @@ class ServerTester:
                     "sent_Mbps": round(result["sent_Mbps"], 2),
                     "received_Mbps": round(result["received_Mbps"], 2),
                 }
-                df = pd.DataFrame([result_data])
+            else:
+                result_data = {
+                    "timestamp": result['timestamp'],
+                    "sent_Mbps": 0,
+                    "received_Mbps": 0,
+                }
+            df = pd.DataFrame([result_data])
 
-                # Save results to file
-                if not os.path.exists(results_file):
-                    df.to_csv(results_file, index=False)
-                else:
-                    df.to_csv(results_file, mode="a", header=False, index=False)
+            # Save results to file
+            if not os.path.exists(results_file):
+                df.to_csv(results_file, index=False)
+            else:
+                df.to_csv(results_file, mode="a", header=False, index=False)
 
             # Wait for the next test or stop signal
             stop_signal.wait(server_config["interval"] * 60)
@@ -99,7 +105,7 @@ class ServerTester:
             self.start_testing(server_config)
 
     @staticmethod
-    def test_server(hostname, port):
+    def validate_iperf_on_server(hostname, port):
         """
         Test if an iPerf3 server is running on the given hostname and port.
 
