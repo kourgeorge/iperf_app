@@ -1,7 +1,7 @@
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 import utils
-from server import server_manager, server_tester
+from server import server_manager
 from utils import load_results
 from streamlit_javascript import st_javascript
 
@@ -34,7 +34,7 @@ def streamlit_app():
         if hostname and port and duration and interval:
             # if test_server_port(hostname, port):
             #     st.sidebar.success(f"Could reach {hostname}:{port}.")
-            success, error = server_tester.validate_iperf_on_server(hostname, port)
+            success, error = utils.validate_iperf_on_server(hostname, port)
             if not success:
                 st.sidebar.error(f"Failed to add server {hostname}:{port}. Error: {error}.")
             else:
@@ -63,7 +63,6 @@ def streamlit_app():
             # Handle the remove button click
             if remove_button:
                 server_manager.remove_server(hostname, port)
-                server_tester.stop_testing(hostname, port)
                 st.success(f"Server {hostname}:{port} removed successfully!")
                 st.rerun()  # Refresh the page after removal
 

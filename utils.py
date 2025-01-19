@@ -73,3 +73,22 @@ async def test_server_port(hostname, port, timeout=5):
         return False
     except Exception as e:
         return False
+
+
+def validate_iperf_on_server(hostname, port):
+    """
+    Test if an iPerf3 server is running on the given hostname and port.
+
+    :param hostname: The hostname or IP address of the server.
+    :param port: The port to test.
+    :return: True if the server is running, False otherwise.
+    """
+    # Run a quick iPerf3 test with duration 1 second
+    ping_result = run_iperf_test(hostname, port, 1)
+
+    if 'error' in ping_result:
+        # Server is not reachable or not running iPerf3
+        return False, ping_result["error"]
+
+    # Server is reachable and running iPerf3
+    return True, None
