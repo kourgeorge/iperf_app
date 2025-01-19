@@ -4,6 +4,23 @@ import utils
 from server import server_manager
 from utils import load_results
 from streamlit_javascript import st_javascript
+import datetime as dt
+
+
+# Placeholder for graphing function
+def filter_data_by_time(data, time_range):
+    current_time = dt.datetime.now().timestamp()
+    if time_range == "1 Hour":
+        time_threshold = current_time - (60 * 60)  # 24 hours in seconds
+        return data[data["timestamp"] >= time_threshold]
+    if time_range == "24 Hours":
+        time_threshold = current_time - (24 * 60 * 60)  # 24 hours in seconds
+        return data[data["timestamp"] >= time_threshold]
+    elif time_range == "7 Days":
+        time_threshold = current_time - (7 * 24 * 60 * 60)  # 7 days in seconds
+        return data[data["timestamp"] >= time_threshold]
+    elif time_range == "All":
+        return data  # Return all data
 
 
 def streamlit_app():
@@ -60,11 +77,18 @@ def streamlit_app():
             with col2:
                 remove_button = st.button("Remove", key=f"remove_{hostname}_{port}")
 
-            # Handle the remove button click
-            if remove_button:
-                server_manager.remove_server(hostname, port)
-                st.success(f"Server {hostname}:{port} removed successfully!")
-                st.rerun()  # Refresh the page after removal
+                # Handle the remove button click
+                if remove_button:
+                    server_manager.remove_server(hostname, port)
+                    st.success(f"Server {hostname}:{port} removed successfully!")
+                    st.rerun()  # Refresh the page after removal
+                # Sidebar to select time range
+                time_range = st.selectbox(
+                    "Range",
+                    label_visibility='hidden',
+                    options=["1 Hour", "24 Hours", "7 Days", "All"],
+                    key=f'{server["hostname"]}_{server["port"]}'
+                )
 
             result_data = load_results(results_file)
 
@@ -74,10 +98,12 @@ def streamlit_app():
                     lambda x: utils.convert_unix_to_local(x, client_timezone)
                 )
 
-            if not result_data.empty:
+                # Filter data based on selected time range
+                filtered_data = filter_data_by_time(result_data, time_range)
+
                 st.line_chart(
-                    result_data.set_index("time")[["sent_Mbps", "received_Mbps"]]
-                )
+                    filtered_data.set_index("time")[["sent_Mbps", "received_Mbps"]])
+
             else:
                 st.warning(f"No data available for {hostname}.")
     else:
